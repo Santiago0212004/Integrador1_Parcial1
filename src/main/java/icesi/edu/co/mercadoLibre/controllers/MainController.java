@@ -60,23 +60,29 @@ public class MainController {
         return ResponseEntity.status(400).body("Usuario Inexistente");
     }
 
-    /*
-    @DeleteMapping(value = "users/delete")
+
+    @DeleteMapping(value = "users/deleteFromShoppingCart")
     public ResponseEntity<?> deleteProduct(@RequestHeader Long userId, @RequestHeader Long productId){
         Optional<User> repositoryUser = userRepository.findById(userId);
         Optional<Product> repositoryProduct = productRepository.findById(productId);
-        User user;
-        Product product;
         if(repositoryUser.isPresent()){
-            user = repositoryUser.get();
             if(repositoryProduct.isPresent()){
-                product = repositoryProduct.get();
-
+                productUserRepository.deleteProductOfShoppingCart(userId,productId);
+                ResponseEntity.status(200).body("Producto borrado del carro de compras");
             }
             return ResponseEntity.status(400).body("El producto que buscas no existe");
         }
         return ResponseEntity.status(400).body("Usuario Inexistente");
     }
-    */
+
+    @GetMapping(value = "users/getTotalShoppingCart")
+    public ResponseEntity<?> getTotalShoppingCart(@RequestHeader Long userId){
+        Optional<User> repositoryUser = userRepository.findById(userId);
+        if(repositoryUser.isPresent()){
+            User user = repositoryUser.get();
+            return ResponseEntity.status(200).body("Precio del carrito de: "+user.getName()+": "+productUserRepository.getShoppingCartPrice(userId));
+        }
+        return ResponseEntity.status(400).body("Usuario Inexistente");
+    }
 
 }
