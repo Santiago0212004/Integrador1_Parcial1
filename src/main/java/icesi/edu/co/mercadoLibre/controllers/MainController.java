@@ -39,7 +39,7 @@ public class MainController {
         return ResponseEntity.status(200).body("Producto creado");
     }
 
-    @PutMapping(value = "users/addToCart")
+    @PostMapping(value = "users/addToCart")
     public ResponseEntity<?> addToCart(@RequestHeader Long userId, @RequestHeader Long productId){
         Optional<User> repositoryUser = userRepository.findById(userId);
         Optional<Product> repositoryProduct = productRepository.findById(productId);
