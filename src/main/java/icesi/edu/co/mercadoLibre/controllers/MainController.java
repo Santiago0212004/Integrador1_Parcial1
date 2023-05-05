@@ -66,9 +66,11 @@ public class MainController {
         Optional<User> repositoryUser = userRepository.findById(userId);
         Optional<Product> repositoryProduct = productRepository.findById(productId);
         if(repositoryUser.isPresent()){
+            User user = repositoryUser.get();
             if(repositoryProduct.isPresent()){
+                Product product = repositoryProduct.get();
                 productUserRepository.deleteProductOfShoppingCart(userId,productId);
-                ResponseEntity.status(200).body("Producto borrado del carro de compras");
+                ResponseEntity.status(200).body("Producto ("+product.getName()+") borrado del carro de compras de "+user.getName());
             }
             return ResponseEntity.status(400).body("El producto que buscas no existe");
         }

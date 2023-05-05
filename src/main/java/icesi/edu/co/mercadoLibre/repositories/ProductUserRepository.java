@@ -15,6 +15,11 @@ public interface ProductUserRepository extends CrudRepository<ProductUser, Long>
     @Query("DELETE FROM product_user a WHERE a.user.id =: userId AND a.product.id =: productId")
     public void deleteProductOfShoppingCart(@Param("userId") Long userId, @Param("productId") Long productId);
 
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM product_user a WHERE a.user.id =: userId AND a.product.id =: productId")
+    public void deleteUnitOfShoppingCart(@Param("userId") Long userId, @Param("productId") Long productId);
+
     @Query("SELECT SUM(p.price) FROM product_user pu JOIN pu.product p WHERE pu.user.id = :userId")
     Double getShoppingCartPrice(@Param("userId") Long userId);
 }
