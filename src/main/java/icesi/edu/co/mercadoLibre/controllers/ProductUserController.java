@@ -10,10 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
-public class MainController {
+public class ProductUserController {
     @Autowired
     UserRepository userRepository;
 
@@ -23,21 +24,6 @@ public class MainController {
     @Autowired
     ProductUserRepository productUserRepository;
 
-    @PostMapping(value = "users/create",
-                consumes = "application/json")
-    public ResponseEntity<?> createUser(@RequestBody User user){
-        userRepository.save(user);
-
-       return ResponseEntity.status(200).body("Usuario creado");
-    }
-
-    @PostMapping(value =  "products/create",
-                consumes = "application/json")
-    public ResponseEntity<?> createProduct(@RequestBody Product product){
-        productRepository.save(product);
-
-        return ResponseEntity.status(200).body("Producto creado");
-    }
 
     @PostMapping(value = "users/addToCart")
     public ResponseEntity<?> addToCart(@RequestHeader Long userId, @RequestHeader Long productId){
@@ -61,7 +47,28 @@ public class MainController {
     }
 
 
-    @DeleteMapping(value = "users/deleteFromShoppingCart")
+    @DeleteMapping(value = "users/deleteProductUnitFromShoppingCart")
+    public ResponseEntity<?> deleteProductUnit(@RequestHeader Long userId, @RequestHeader Long productId){
+        Optional<User> repositoryUser = userRepository.findById(userId);
+        Optional<Product> repositoryProduct = productRepository.findById(productId);
+        if(repositoryUser.isPresent()){
+            User user = repositoryUser.get();
+            if(repositoryProduct.isPresent()){
+                Product product = repositoryProduct.get();
+                List<ProductUser> productUnitsOfUser = productUserRepository.getProductUnitsOfUser(userId,productId);
+                if(productUnitsOfUser.size()>0){
+                    productUserRepository.deleteById(productUnitsOfUser.get(0).getId());
+                    return ResponseEntity.status(200).body("Unidad de: "+product.getName()+" borrada del carro de compras de "+user.getName());
+                }else{
+                    return ResponseEntity.status(400).body("El usuario: "+user.getName()+" no tiene unidades de: "+product.getName()+" para eliminar.");
+                }
+            }
+            return ResponseEntity.status(400).body("El producto que buscas no existe");
+        }
+        return ResponseEntity.status(400).body("Usuario Inexistente");
+    }
+
+    @DeleteMapping(value = "users/deleteProductFromShoppingCart")
     public ResponseEntity<?> deleteProduct(@RequestHeader Long userId, @RequestHeader Long productId){
         Optional<User> repositoryUser = userRepository.findById(userId);
         Optional<Product> repositoryProduct = productRepository.findById(productId);
@@ -69,8 +76,16 @@ public class MainController {
             User user = repositoryUser.get();
             if(repositoryProduct.isPresent()){
                 Product product = repositoryProduct.get();
-                productUserRepository.deleteProductOfShoppingCart(userId,productId);
-                ResponseEntity.status(200).body("Producto ("+product.getName()+") borrado del carro de compras de "+user.getName());
+                List<ProductUser> productUnitsOfUser = productUserRepository.getProductUnitsOfUser(userId,productId);
+                if(productUnitsOfUser.size()>0){
+                    while(productUnitsOfUser.size()>0){
+                        productUserRepository.deleteById(productUnitsOfUser.get(0).getId());
+                        productUnitsOfUser.remove(0);
+                    }
+                    return ResponseEntity.status(200).body("Todas las unidades de: "+product.getName()+" borrada del carro de compras de "+user.getName());
+                }else{
+                    return ResponseEntity.status(400).body("El usuario: "+user.getName()+" no tiene unidades de: "+product.getName()+" para eliminar.");
+                }
             }
             return ResponseEntity.status(400).body("El producto que buscas no existe");
         }
